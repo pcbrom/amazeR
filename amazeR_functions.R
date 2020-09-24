@@ -159,7 +159,7 @@ get_moves <- function(posicao, nb) {
 }
 
 
-# atualizar o printo do labirinto
+# atualizar o print do labirinto
 nb_update <- function(nb, entrada, saida, posicao) {
   tmp <- nb
   tmp[entrada[1], entrada[2]] <- 333
