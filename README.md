@@ -1,8 +1,8 @@
-# amazeR
+# amazeR - Functions
 
 ## mazeR.R
 
-- Original script from https://github.com/matfmc/mazegenerator.
+- mazeR.R has the original script in https://github.com/matfmc/mazegenerator.
 - It has been modified to make the maze narrower.
 
 
@@ -14,10 +14,21 @@
 
 - N: Total number of simulations.
 - xx e yy: Board size.
-- ini: Simple random sample without restoring the initial game conditions.
+- ini: Initial game conditions (simple random sampling without replacement).
 - first_plot: Starting plot of the board.
 - results: Outputs of the simulations already organized to be used in Machine Learning.
 - game: Conditions played.
+
+
+## Game example
+
+![maze](https://raw.githubusercontent.com/pcbrom/amazeR/master/mazePlot.png)
+
+
+## Output example
+
+![game](https://raw.githubusercontent.com/pcbrom/amazeR/master/game.png)
+![results](https://raw.githubusercontent.com/pcbrom/amazeR/master/results.png)
 
 
 ## amazeR_functions.R
