@@ -1,75 +1,78 @@
-get_game <- function(nb = nb, entrada = entrada, saida = saida, posicao = posicao) {
+# get game
+get_game <- function(nb = nb, input = input, exit = exit, position = position) {
   
-  resultados <- NULL
+  results <- NULL
   
-  n = teste <- 1
+  n = test <- 1
   
-  while (teste != 0) {
+  while (test != 0) {
     
-    # tomar os movimentos possiveis
-    mov <- get_moves(posicao = posicao, nb = nb)
+    # take the possible moves
+    mov <- get_moves(position = position, nb = nb)
     
-    # funcao objetivo
-    fobj <- function(posicao, saida, entrada, n) {
-      distancia <- sum(abs(saida - posicao))
-      pontuacao <- (n * distancia)^-1
-      rew <- ifelse(distancia != 0, pontuacao, 10)
+    # objective function
+    fobj <- function(position, exit, input, n) {
+      distance <- sum(abs(exit - position))
+      points <- (n * distance)^-1
+      rew <- ifelse(distance != 0, points, 10)
       return(rew)
     }
-    rew <- fobj(posicao, saida, entrada, n) * 2^nrow(mov)
+    rew <- fobj(position, exit, input, n) * 2^nrow(mov)
     
-    # sortear uma acao dentre as disponiveis e atualiza a proxima posicao
-    proximo <- sample(rownames(mov), 1)
-    posicao <- mov[mov$mov == proximo, c('row', 'col')]
-    posicao <- unlist(posicao)
+    # draw an action among the available ones and update the next position
+    next_step <- sample(rownames(mov), 1)
+    position <- mov[mov$mov == next_step, c('row', 'col')]
+    position <- unlist(position)
     
-    # listar os resultados
-    resultados <- rbind.data.frame(
-      resultados,
+    # list the results
+    results <- rbind.data.frame(
+      results,
       cbind.data.frame(
         rew, 
-        'row' = posicao[1], 
-        'col' = posicao[2], 
-        'estado' = paste0('s', posicao[1], posicao[2]),
-        proximo
+        'row' = position[1], 
+        'col' = position[2], 
+        'estado' = paste0('s', position[1], position[2]),
+        next_step
       )
     )
     
-    # atualizar o grafico e dar pausa
-    # print(plot_update(first_plot, posicao))
-    # Sys.sleep(.25)
-    
-    # atualiza informacao do teste de parada
-    teste <- sum(abs(saida - c(posicao)))
+    # update stop test information
+    test <- sum(abs(exit - c(position)))
   }
   
-  # remover rotulos das linhas
-  rownames(resultados) <- NULL
+  # remove labels from lines
+  rownames(results) <- NULL
   
-  # retornar
-  return(resultados)
+  # return
+  return(results)
   
 }
 
 
-# arrumar_estados
-get_result_state <- function(resultados = resultados) {
-  transicao <- resultados %>% 
+# tidy states
+get_result_state <- function(results = results) {
+  
+  # tidy states
+  transition <- results %>% 
     mutate(
       State = paste0('s', row, col),
-      Action = c(proximo[2:length(proximo)], 'exit'),
+      Action = c(next_step[2:length(next_step)], 'exit'),
       NextState = c(State[2:length(State)], State[length(State)])
     ) %>% 
     rename(Reward = rew) %>% 
     select(State, Action, Reward, NextState)
-  fim <- list(transicao = transicao, resultados = resultados)
-  return(fim)
+  
+  # return list
+  end <- list(transition = transition, results = results)
+  return(end)
+  
 }
 
 
-# visualizacao
-plot_maze <- function(board_cells, entrada, saida, caselas) {
-  cas <- caselas %>% 
+# visualization
+plot_maze <- function(board_cells, input, exit, boxes) {
+  
+  cas <- boxes %>% 
     as.data.frame() %>% 
     mutate(State = paste0('s', row, col))
   nbPlot <- board_cells %>% 
@@ -85,34 +88,40 @@ plot_maze <- function(board_cells, entrada, saida, caselas) {
     geom_tile(aes(fill = point), colour = "white") +
     scale_fill_gradient(low = "black", high = "white") +
     guides(fill = F) +
-    #theme_void() +
     xlab('') +
     ylab('') +
-    geom_point(aes(y = entrada[1], x = entrada[2], size = 2), col = 'green') + # local de entrada
-    geom_point(aes(y = saida[1], x = saida[2], size = 2), col = 'aquamarine') + # local de saida
+    # input location
+    geom_point(aes(y = input[1], x = input[2], size = 2), col = 'green') + 
+    # exit location
+    geom_point(aes(y = exit[1], x = exit[2], size = 2), col = 'aquamarine') + 
     annotate('text', x = cas$col, y = cas$row, label = cas$State) +
     theme(legend.position = "none")
+  
   return(nbPlot)
 }
 
-plot_update <- function(first_plot, posicao) {
+plot_update <- function(first_plot, position) {
   first_plot +
-    geom_point(aes(y = posicao[1], x = posicao[2]), col = 'red')
+    geom_point(aes(y = position[1], x = position[2]), col = 'red')
 }
 
-# pegar nova posicao
-get_pos <- function(posicao) return(as.matrix(mov[proximo,-3]))
+# take new position
+get_pos <- function(position) return(as.matrix(mov[next_step,-3]))
 
 
-# pegar proximos movimentos
-get_moves <- function(posicao, nb) {
+# pick up next steps moves
+get_moves <- function(position, nb) {
+  
+  # Note: In the graph the y-axis is in Cartesian coordinate so 
+  # the representation of the matrix lines is in reverse order 
+  # compared to the graph.
   
   suppressWarnings({
     
     # up
     res <- try({
-      if (nb[posicao[1] - 1, posicao[2]] == 1) {
-        up <- c(posicao[1] - 1, posicao[2])
+      if (nb[position[1] - 1, position[2]] == 1) {
+        up <- c(position[1] - 1, position[2])
       } else {
         up <- c(NA, NA)
       }
@@ -121,8 +130,8 @@ get_moves <- function(posicao, nb) {
     
     # down
     res <- try({
-      if (nb[posicao[1] + 1, posicao[2]] == 1) {
-        down <- c(posicao[1] + 1, posicao[2])
+      if (nb[position[1] + 1, position[2]] == 1) {
+        down <- c(position[1] + 1, position[2])
       } else {
         down <- c(NA, NA)
       }
@@ -131,8 +140,8 @@ get_moves <- function(posicao, nb) {
     
     # left
     res <- try({
-      if (nb[posicao[1], posicao[2] - 1] == 1) {
-        left <- c(posicao[1], posicao[2] - 1)
+      if (nb[position[1], position[2] - 1] == 1) {
+        left <- c(position[1], position[2] - 1)
       } else {
         left <- c(NA, NA)
       }
@@ -141,8 +150,8 @@ get_moves <- function(posicao, nb) {
     
     # right
     res <- try({
-      if (nb[posicao[1], posicao[2] + 1] == 1) {
-        right <- c(posicao[1], posicao[2] + 1)
+      if (nb[position[1], position[2] + 1] == 1) {
+        right <- c(position[1], position[2] + 1)
       } else {
         right <- c(NA, NA)
       }
@@ -159,11 +168,11 @@ get_moves <- function(posicao, nb) {
 }
 
 
-# atualizar o print do labirinto
-nb_update <- function(nb, entrada, saida, posicao) {
+# update the labyrinth print
+nb_update <- function(nb, input, exit, position) {
   tmp <- nb
-  tmp[entrada[1], entrada[2]] <- 333
-  tmp[saida[1], saida[2]] <- 555
-  tmp[posicao[1], posicao[2]] <- 999
+  tmp[input[1], input[2]] <- 333
+  tmp[exit[1], exit[2]] <- 555
+  tmp[position[1], position[2]] <- 999
   return(tmp)
 }
