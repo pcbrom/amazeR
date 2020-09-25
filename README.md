@@ -22,6 +22,10 @@
 
 ## Game example
 
++ **Red:** Player's position.
++ **Green:** Entrance to the maze.
++ **Blue:** Exit the maze.
+
 ![maze](https://raw.githubusercontent.com/pcbrom/amazeR/master/mazePlot.png)
 
 
