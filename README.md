@@ -1,4 +1,4 @@
-# amazeR - Functions
+# amazeR (a maze R)
 
 ## mazeR.R
 
